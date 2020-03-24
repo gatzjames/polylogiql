@@ -1,0 +1,495 @@
+scalar DateTime
+scalar PositiveInt
+scalar JSON
+scalar Upload
+
+enum ConditionEnum {
+  AND
+  OR
+}
+
+"""
+A condition rule for a specific
+"""
+type ConditionRule {
+  id: ID!
+  type: String
+  field: String
+  input: String
+  value: [String]
+  operator: String
+}
+
+type Condition {
+  rules: [ConditionGroup]
+  condition: ConditionEnum
+}
+
+union ConditionGroup = ConditionRule | Condition
+
+type Conditions {
+  rules: [ConditionGroup]
+  valid: Boolean
+  condition: ConditionEnum
+}
+
+enum RuleStatusEnum {
+  ACTIVE
+  INACTIVE
+}
+
+type Rule {
+  id: String
+  alerters: [String]
+  conditions: Conditions
+  description: String
+  name: String
+  status: String
+  updated_at: DateTime
+  type: String
+  tactics: [String]
+  technique_id: String
+}
+
+type OSInfo {
+  name: String
+  build: String
+  major: String
+  minor: String
+  patch: String
+  version: String
+  codename: String
+  platform: String
+  platform_like: String
+}
+
+type NetworkInfo {
+  mac: String
+  mask: String
+  address: String
+  enabled: String
+  description: String
+  manufacturer: String
+  connection_id: String
+  connection_status: String
+}
+
+type NodeInfo {
+  cpu_type: String
+  computer_name: String
+  hardware_model: String
+  hardware_serial: String
+  hardware_vendor: String
+  physical_memory: String
+  cpu_physical_cores: Int
+}
+
+"""
+A specific endpoint that is actively monitored
+"""
+type Node {
+  id: ID!
+  node_key: String
+  platform: SupportedPlatformsEnum
+  host_identifier: String!
+  display_name: String!
+  node_info: NodeInfo
+  os_info: OSInfo
+  network_info: [NetworkInfo]
+  last_checkin: DateTime
+  enrolled_on: DateTime
+  tags: [String!]
+  last_ip: String!
+  is_active: Boolean
+}
+
+"""
+JSON describing the various options used to
+instrument the agent behavior as well as the
+queries scheduled on the agent
+"""
+type Config {
+  id: ID!
+}
+
+"""
+A mechanism to logically group/associate elements such as nodes, packs etc.
+"""
+type Tag {
+  id: ID!
+  value: String!
+}
+
+"""
+Grouping of scheduled queries
+"""
+type OSQueryPack {
+  id: Int!
+  name: String!
+  platform: SupportedPlatformsEnum
+  version: String
+  description: String
+  shard: String
+  queries: [OSQuery]
+}
+
+"""
+Alert based on rules that are applied to scheduled queries, that contains the event information
+"""
+type Alert {
+  created_at: DateTime!
+  message: JSON
+  node_id: PositiveInt
+  query_name: String
+  sql: String
+  severity: String
+  type: String
+  source: String
+  rule: String
+  rule_id: PositiveInt
+  rule_name: String
+  recon_queries: String
+  status: String
+}
+
+input LoginInput {
+  username: String!
+  password: String!
+}
+
+type LoginResults {
+  token: String!
+}
+
+input ChangePasswordInput {
+  currentPassword: String!
+  newPassword: String!
+}
+
+enum ThirdPartyApiEnum {
+  IBMxForceKey
+  IBMxForcePass
+  VirusTotalKey
+}
+
+type APIKey {
+  api: ThirdPartyApiEnum
+  key: String
+}
+
+input UpdateApiKeyInput {
+  api: ThirdPartyApiEnum
+  key: String
+}
+
+type OSQuery {
+  id: Int!
+  name: String!
+  sql: String!
+  interval: Int!
+  platform: SupportedPlatformsEnum
+  version: String
+  description: String
+  snapshot: Boolean
+  shard: String
+  tags: [String!]
+}
+
+type OSQueryResult {
+  id: ID!
+  name: String!
+  timestamp: String!
+  action: String!
+  columns: JSON
+  node: Node
+}
+
+enum SupportedPlatformsEnum {
+  windows
+  linux
+  darwin
+  all
+}
+
+input TagsWhereInput {
+  pack_id: String
+}
+
+type LoginUserSuccess {
+  token: String
+}
+
+input LoginUserInput {
+  password: String!
+  username: String!
+}
+
+input UpdateOptionsInput {
+  options: JSON!
+}
+
+type OSQuerySchema {
+  schema: JSON
+}
+
+type TableSchema {
+  schema: JSON
+}
+
+type PlatformConfig {
+  config: JSON
+}
+
+type Options {
+  todo: String
+}
+
+input UpdateNodeTagsInput {
+  tags: [String]
+}
+
+input UpdateRuleInput {
+  rule: JSON
+}
+
+"""
+@HACK until we get input union types either use the { rules, condition } fields or all the others
+"""
+input ConditionRuleInput {
+  id: ID
+  type: String
+  field: String
+  input: String
+  value: [String]
+  operator: String
+  rules: [ConditionRuleInput]
+  condition: ConditionEnum
+}
+
+input ConditionsInput {
+  rules: [ConditionRuleInput]
+  valid: Boolean
+  condition: ConditionEnum
+}
+
+input AddRuleInput {
+  id: String
+  alerters: [String]
+  conditions: ConditionsInput
+  description: String
+  name: String
+  status: String
+  updated_at: DateTime
+  type: String
+  tactics: [String]
+  technique_id: String
+}
+
+input AddPlatformConfigInput {
+  config: JSON
+}
+
+input AddIOCFilesInput {
+  todo: String
+}
+
+input AddYaraFileInput {
+  todo: String
+}
+
+input AddAlertsInput {
+  todo: String
+}
+
+input AddOSQueryInput {
+  name: String
+  query: String
+  interval: Int
+  platform: SupportedPlatformsEnum
+  version: String
+  snapshot: Boolean
+  description: String
+  value: String
+  tags: [String]
+}
+
+input EditOSQueryTagsInput {
+  tags: [String]
+}
+
+input AddOSQueryTagsInput {
+  tags: [String]
+}
+
+union LoginUserResult = LoginUserSuccess
+
+input UpdateApiKeysInput {
+  todo: String
+}
+
+input AddPacksInput {
+  packs: [JSON]
+}
+
+type AddPacksResult {
+  packs: [JSON]
+}
+
+input AddPackTagsInput {
+  tags: [String]
+}
+
+input DeleteOSQueryResultInput {
+  todo: String
+}
+
+input UpdatePlatformConfigInput {
+  config: JSON
+}
+
+type Query {
+  alerts(hostIdentifier: String, ruleId: Int, queryName: String): [Alert!]
+  """
+  Get all the API keys that are used in the POLYLOGIX plarform to communicate with other services.
+  """
+  apiKeys: [APIKey!]
+  """
+  Get all the OSQuery results that are stored in the POLYLOGIX platform
+  """
+  queryResult(older_than_num_of_days: Int!): [OSQueryResult!]
+  """
+  Get a list of all the current nodes and their properties
+  """
+  nodes: [Node!]
+  """
+  Get a node by it's host_id
+  """
+  node(hostIdentifier: String!): Node
+  """
+  Get all the scheduled queries of a node
+  """
+  nodeScheduledQueries: [OSQuery]
+  """
+  Get the SQL query schema available for OSQuery
+  """
+  querySchema: OSQuerySchema
+  """
+  Get the SQL query schema for a specific table
+  """
+  tableSchema: TableSchema
+  """
+  Get the rules that are deployed in the POLYLOGIX Nodes
+  """
+  rules: [Rule!]
+  """
+  Get the rules that are deployed in the POLYLOGIX Nodes
+  """
+  rule(id: ID!): Rule
+  """
+  Get the OSQueries that are deployed in the POLYLOGIX platform
+  """
+  queries: [OSQuery]
+  """
+  Get the OSQuery packs
+  """
+  packedQueries: [OSQuery]
+  """
+  Get a specific OSQuery
+  """
+  query(id: ID!): OSQuery
+  """
+  Get a specific OSQuery pack
+  """
+  pack: OSQueryPack
+  """
+  Get the OSQuery Packs that are deployed in the POLYLOGIX platform
+  """
+  packs: [OSQueryPack]
+  """
+  Get the configuration of endpoints based on their platform
+  """
+  platformConfigs(platforms: [SupportedPlatformsEnum]): [PlatformConfig]
+  """
+  Get tags
+  """
+  tags(where: TagsWhereInput!): [Tag!]
+}
+
+type Mutation {
+  """
+  Login by username, password and get back a token
+  """
+  loginUser(input: LoginUserInput!): LoginUserResult
+  """
+  Logs the user out. Makes the current access token invalid.
+  """
+  logoutUser: Boolean
+  """
+  Changes the user's password
+  """
+  updateUserPassword(input: ChangePasswordInput): Boolean
+  """
+  Change the API keys used for external services
+  """
+  updateAPIKeys(input: [UpdateApiKeysInput]): Boolean
+  """
+  Delete a specific OSQuery result
+  """
+  deleteOSQueryResult(input: DeleteOSQueryResultInput!): OSQueryResult
+  """
+  Update the options of the polylogix platform
+  """
+  updateOptions(input: UpdateOptionsInput): Options
+  """
+  Update the tags of a Node
+  """
+  updateNodeTags(input: UpdateNodeTagsInput!): Node
+  """
+  Update an existing rule
+  """
+  updateRule(input: UpdateRuleInput!): JSON!
+  """
+  Create a new rule
+  """
+  createRule(input: AddRuleInput!): JSON!
+  """
+  Add a new OSQuery
+  """
+  addOSQuery(input: AddOSQueryInput!): OSQuery
+  """
+  Edit the tags of an OSQuery
+  """
+  editOSQueryTags(input: EditOSQueryTagsInput!): Boolean
+  """
+  Add tags to an OSQuery
+  """
+  addOSQueryTags(input: AddOSQueryTagsInput!): Boolean
+  """
+  Returns the pack id???
+  """
+  addPacks(input: AddPacksInput!): AddPacksResult
+  """
+  Add tags to a pack of OSQueries
+  """
+  addPackTags(input: AddPackTagsInput!): [Tag]
+  """
+  Update a config for the platform
+  """
+  updatePlatformConfig(input: UpdatePlatformConfigInput): PlatformConfig!
+  """
+  Add a config for a platform
+  """
+  addPlatformConfig(input: AddPlatformConfigInput): PlatformConfig!
+  """
+  Not implemented
+  """
+  addIOCFiles(input: AddIOCFilesInput): Boolean
+  """
+  Not implemented
+  """
+  addYaraFile(input: AddYaraFileInput): Boolean
+  """
+  Not implemented
+  """
+  addAlerts(input: AddAlertsInput): Boolean
+}
